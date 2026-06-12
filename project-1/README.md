@@ -1,5 +1,7 @@
 # AWS Hybrid Highly Available Web Architecture
 
+![](./AWS-hand-on-project-1.png)
+
 ## Overview
 
 This project demonstrates a production-inspired AWS architecture designed with High Availability, Security, Scalability, Hybrid Connectivity, and Cost Optimization principles.

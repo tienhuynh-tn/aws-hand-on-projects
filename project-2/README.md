@@ -361,6 +361,11 @@ Benefits:
 
 ---
 
+## Reference
+- [How to Run a Application on AWS ECS: A Step-by-Step Guide](https://blog.cloudmentor.pro/posts/ecs)
+
+---
+
 ## Conclusion
 
 This project demonstrates a production-style containerized application architecture using Amazon ECS, Amazon ECR, and Application Load Balancer. The solution provides high availability, scalability, security, and efficient container orchestration while following AWS Well-Architected Framework principles.

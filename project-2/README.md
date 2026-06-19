@@ -1,10 +1,12 @@
-# AWS ECS Highly Available Containerized Application
+# AWS ECS EC2 Multi-AZ Architecture
 
 ## Overview
 
-This project demonstrates a highly available containerized web application running on Amazon ECS using the EC2 launch type. The architecture follows AWS best practices for scalability, fault tolerance, security, and container orchestration.
+This project demonstrates a highly available containerized application deployed on Amazon ECS using the EC2 launch type.
 
-The solution distributes workloads across multiple Availability Zones while using Amazon ECR for container image storage and Application Load Balancer (ALB) for traffic distribution.
+The architecture follows AWS best practices by distributing workloads across multiple Availability Zones, using an Application Load Balancer for traffic distribution, Amazon ECR for container image management, and private subnets for application workloads.
+
+The solution is designed to provide scalability, fault tolerance, and secure access while keeping container workloads isolated from the public internet.
 
 ---
 
@@ -14,111 +16,100 @@ The solution distributes workloads across multiple Availability Zones while usin
 
 ---
 
+## Architecture Highlights
+
+- Amazon ECS (EC2 Launch Type)
+- Amazon ECR
+- Application Load Balancer (ALB)
+- Route 53
+- Multi-AZ Deployment
+- Public and Private Subnets
+- NAT Gateway
+- Bastion Host
+- ECS Service
+- ECS Task Definition
+- High Availability Design
+
+---
+
 ## Architecture Components
 
 ### Amazon Route 53
 
-Provides DNS resolution and routes users to the application.
-
-Responsibilities:
-- Domain name resolution
-- Traffic routing
-- High availability DNS
-
----
+Provides DNS resolution and routes user traffic to the Application Load Balancer.
 
 ### Application Load Balancer (ALB)
 
-Distributes incoming traffic across ECS tasks running in multiple Availability Zones.
+Receives incoming requests and distributes traffic across ECS tasks running in multiple Availability Zones.
 
-Benefits:
-- High availability
-- Health checks
-- Layer 7 routing
-- Traffic distribution
+Features:
 
----
+- Layer 7 Load Balancing
+- Health Checks
+- High Availability
+- Traffic Distribution
 
 ### Amazon Elastic Container Registry (ECR)
 
 Stores Docker container images used by ECS tasks.
 
 Benefits:
-- Secure container registry
-- Version control for images
-- Integration with ECS
-- Private image storage
 
----
+- Private container registry
+- Versioned images
+- Secure image storage
+- Native ECS integration
 
-### Amazon Elastic Container Service (ECS)
+### Amazon ECS
 
-Amazon ECS orchestrates container deployment and management.
+Amazon Elastic Container Service orchestrates container deployment and management.
 
 Responsibilities:
-- Container scheduling
-- Service management
-- Task monitoring
-- High availability
 
----
+- Container scheduling
+- Service discovery
+- Task monitoring
+- Container lifecycle management
 
 ### ECS Service
 
-Maintains the desired number of running tasks.
+Ensures the desired number of tasks remain running.
 
 Features:
+
 - Self-healing
 - Automatic task replacement
-- Load balancer integration
-- Multi-AZ deployment
-
----
+- Integration with ALB
+- High availability
 
 ### ECS Task Definition
 
-Defines container configuration including:
+Defines how containers run, including:
 
 - Docker image
 - CPU allocation
 - Memory allocation
 - Environment variables
-- Networking settings
 - Port mappings
-
----
 
 ### Amazon EC2 Container Instances
 
 Host ECS tasks using the ECS EC2 launch type.
 
 Benefits:
-- Full infrastructure control
-- Custom AMIs
-- Cost optimization
-- Flexible resource allocation
 
----
+- Infrastructure control
+- Custom AMIs
+- Flexible resource allocation
+- Cost optimization
 
 ### Bastion Host
 
-Provides secure administrative access to private resources.
-
-Responsibilities:
-- Secure SSH entry point
-- Administrative access
-- Infrastructure troubleshooting
-
----
+Provides secure SSH access to resources within private subnets.
 
 ### NAT Gateway
 
-Provides outbound internet access for resources in private subnets.
-
-Use Cases:
-- Pull container images from ECR
-- Download software updates
-- Access AWS services
+Allows private workloads to access AWS services and external repositories without exposing them to the internet.
 
 ---
 
@@ -126,11 +117,12 @@ Use Cases:
 
 ### VPC
 
-Provides network isolation for all AWS resources.
+Provides network isolation for all resources.
 
 ### Public Subnets
 
 Contain:
+
 - Application Load Balancer
 - Bastion Host
 - NAT Gateway
@@ -138,10 +130,11 @@ Contain:
 ### Private Subnets
 
 Contain:
+
 - ECS Container Instances
 - ECS Tasks
 
-Application workloads remain inaccessible directly from the internet.
+Application containers are not directly accessible from the internet.
 
 ---
 
@@ -172,7 +165,7 @@ Docker Build
  ↓
 Amazon ECR
  ↓
-ECS Service
+ECS Cluster
  ↓
 ECS Tasks
 ```
@@ -186,7 +179,7 @@ SSH
  ↓
 Bastion Host
  ↓
-Private ECS EC2 Instances
+Private ECS Instances
 ```
 
 ---
@@ -198,31 +191,29 @@ Private ECS EC2 Instances
 ```text
 Availability Zone 1
  ├── Public Subnet
- │   ├── NAT Gateway
- │   └── Bastion Host
+ │   ├── Bastion Host
+ │   └── NAT Gateway
  └── Private Subnet
      └── ECS Tasks
 
 Availability Zone 2
  ├── Public Subnet
- │   └── NAT Gateway
  └── Private Subnet
      └── ECS Tasks
 ```
 
 Benefits:
+
 - Fault tolerance
-- Improved availability
 - Reduced downtime
+- Increased availability
 
 ### ECS Service Recovery
 
 ```text
 Task Failure
  ↓
-Health Check Failure
- ↓
-ECS Service Detects Failure
+ECS Detects Failure
  ↓
 Launch Replacement Task
 ```
@@ -234,7 +225,7 @@ AZ Failure
  ↓
 ALB Routes Traffic
  ↓
-Healthy ECS Tasks In Remaining AZ
+Healthy Tasks In Remaining AZ
 ```
 
 Application remains available.
@@ -243,18 +234,19 @@ Application remains available.
 
 ## Security Design
 
-### Layer 1 – Network Isolation
+### Network Isolation
 
-- ECS tasks run in private subnets
-- No direct public access
+- Application workloads run in private subnets
+- No direct public access to ECS tasks
 
-### Layer 2 – Security Groups
+### Security Groups
 
-Restrict traffic between:
+Restrict communication between:
+
 - ALB and ECS Tasks
 - Bastion Host and EC2 Instances
 
-### Layer 3 – Bastion Access
+### Bastion Access
 
 ```text
 Admin
@@ -266,11 +258,7 @@ Bastion Host
 Private Resources
 ```
 
-### Layer 4 – Private Container Workloads
-
-Application containers are not exposed directly to the internet.
-
-Only the ALB receives public traffic.
+Only administrators can access internal resources.
 
 ---
 
@@ -279,20 +267,21 @@ Only the ALB receives public traffic.
 ### Horizontal Scaling
 
 ```text
-High Traffic
+Increased Traffic
  ↓
-Scale Out
+ECS Service Scaling
  ↓
-More ECS Tasks
+Additional Tasks
 ```
 
 ### Load Balancing
 
-Application Load Balancer distributes requests across all healthy tasks.
+Application Load Balancer distributes requests across healthy ECS tasks.
 
 Benefits:
+
 - Improved performance
-- Increased availability
+- High availability
 - Better user experience
 
 ---
@@ -301,12 +290,12 @@ Benefits:
 
 | Category | Services |
 |-----------|-----------|
-| DNS | Route 53 |
-| Compute | Amazon EC2 |
-| Containers | Amazon ECS |
+| DNS | Amazon Route 53 |
+| Container Orchestration | Amazon ECS |
 | Container Registry | Amazon ECR |
+| Compute | Amazon EC2 |
 | Load Balancing | Application Load Balancer |
-| Networking | VPC, NAT Gateway |
+| Networking | Amazon VPC, NAT Gateway |
 | Security | Security Groups |
 | Administration | Bastion Host |
 
@@ -316,36 +305,62 @@ Benefits:
 
 - Amazon ECS
 - Amazon ECR
-- Docker Containers
+- Docker
 - Container Orchestration
 - Application Load Balancer
-- Multi-AZ Architecture
+- Route 53
 - VPC Design
 - Public and Private Subnets
 - NAT Gateway
-- Route 53
+- Bastion Host
+- Multi-AZ Architecture
 - High Availability
-- Scalability
 - Cloud Networking
 - Infrastructure Design
 
 ---
 
-## Future Enhancements
+## Challenges & Design Decisions
 
-- AWS Fargate
-- AWS WAF
-- AWS CloudWatch
+### Why ECS EC2 Instead of Fargate?
+
+- More control over infrastructure
+- Better understanding of container orchestration
+- Lower cost for long-running workloads
+
+### Why Private Subnets for ECS Tasks?
+
+- Improved security
+- Reduced attack surface
+- No direct internet exposure
+
+### Why Application Load Balancer?
+
+- Layer 7 routing support
+- Native ECS integration
+- Automatic health checks
+
+### Why Multi-AZ Deployment?
+
+- Protect against Availability Zone failures
+- Improve application availability
+- Increase resilience
+
+---
+
+## Future Improvements
+
 - ECS Service Auto Scaling
-- AWS Secrets Manager
+- AWS CloudWatch Monitoring
 - AWS Systems Manager Session Manager
 - Amazon RDS PostgreSQL
 - Amazon ElastiCache Redis
-- CI/CD with GitHub Actions
+- CI/CD Pipeline with GitHub Actions
+- AWS WAF
 - Blue/Green Deployment with AWS CodeDeploy
 
 ---
 
 ## Conclusion
 
-This project demonstrates a production-ready containerized application architecture using Amazon ECS, Amazon ECR, and Application Load Balancer. The solution provides high availability, scalability, security, and efficient container orchestration while following AWS Well-Architected Framework principles.
+This project demonstrates a production-style containerized application architecture using Amazon ECS, Amazon ECR, and Application Load Balancer. The solution provides high availability, scalability, security, and efficient container orchestration while following AWS Well-Architected Framework principles.

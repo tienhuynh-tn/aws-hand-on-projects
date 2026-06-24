@@ -385,6 +385,11 @@ This project helped strengthen practical knowledge in:
 
 ---
 
+## Reference
+- [AWS Secrets Manager Integration with Amazon RDS](https://blog.cloudmentor.pro/posts/aws-secrets-manager-integration-with-amazon-rds)
+
+---
+
 ## Conclusion
 
 This project demonstrates a secure and scalable serverless architecture for managing database credentials on AWS. By combining AWS Lambda, Secrets Manager, KMS, VPC Endpoints, and Amazon RDS, the solution eliminates hardcoded credentials while providing secure, encrypted, and private access to sensitive resources.
